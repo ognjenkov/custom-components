@@ -178,6 +178,7 @@ import { NumberFieldEntry, TextFieldEntry, isNumberFieldEntryEdited, isTextField
 
 export class CustomPropertiesProvider {
   constructor(propertiesPanel) {
+    console.log('CustomPropertiesProvider constructor called');
     propertiesPanel.registerProvider(this, 500);
   }
 

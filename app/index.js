@@ -12,22 +12,19 @@ import '@bpmn-io/form-js/dist/assets/form-js-playground.css';
 import './style.css';
 
 import schema from './empty.json';
-import { CustomPropertiesProvider } from './extension/propertiesPanel/CustomPropertiesProvider';
 
 new FormPlayground({
   container: document.querySelector('#form'),
   schema: schema,
   data: {},
 
-  // load rendering extension
   additionalModules: [
     RenderExtension,
     FileExtension, CustomSelectModule,
     
   ],
 
-  // load properties panel extension
-  additionalPropertiesPanelModules: [
-    PropertiesPanelExtension
+  editorAdditionalModules: [
+    PropertiesPanelExtension,
   ]
 });
