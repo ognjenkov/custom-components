@@ -1,10 +1,11 @@
 import { get, set } from "min-dash";
 import {
-  NumberFieldEntry,
+  FeelTemplatingEntry,
+  isFeelEntryEdited,
   TextFieldEntry,
-  isNumberFieldEntryEdited,
   isTextFieldEntryEdited,
 } from "@bpmn-io/properties-panel";
+import { useVariables } from "@bpmn-io/form-js";
 
 export class CustomPropertiesProvider {
   constructor(propertiesPanel) {
@@ -37,6 +38,18 @@ export class CustomPropertiesProvider {
 CustomPropertiesProvider.$inject = ["propertiesPanel"];
 
 function SearchableSelectEntries(field, editField) {
+  // const onChange = (key) => {
+  //   return (value) => {
+  //     editField(field, [ key ], value);
+  //   };
+  // };
+
+  // const getValue = (key) => {
+  //   return () => {
+  //     return get(field, [ key ]);
+  //   };
+  // };
+
   const onChange = (key) => {
     return (value) => {
       const range = get(field, ["searchableSelect"], {});
@@ -60,6 +73,14 @@ function SearchableSelectEntries(field, editField) {
       isEdited: isTextFieldEntryEdited,
       onChange,
     },
+    {
+      id: "searchableSelect-fx",
+      component: FxEntry,
+      getValue,
+      field,
+      isEdited: isFeelEntryEdited,
+      onChange,
+    },
   ];
 }
 
@@ -75,7 +96,24 @@ function UrlEntry(props) {
     id,
     label: "URL",
     setValue: onChange("url"),
-    // debounce: null,
+  });
+}
+
+function FxEntry(props) {
+  const { field, getValue, id, onChange } = props;
+
+  const debounce = (fn) => fn;
+
+  const variables = useVariables().map((name) => ({ name }));
+
+  return FeelTemplatingEntry({
+    debounce,
+    element: field,
+    getValue: getValue("fx"),
+    id,
+    label: "FX",
+    setValue: onChange("fx"),
+    variables,
   });
 }
 

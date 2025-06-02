@@ -6,6 +6,7 @@ import {
   Description,
   Label,
   Select,
+  useTemplateEvaluation,
 } from "@bpmn-io/form-js";
 import { useState, useEffect, useRef, useCallback } from "preact/hooks";
 import { html, useContext } from "diagram-js/lib/ui";
@@ -24,7 +25,7 @@ export function CustomSelect(props) {
     searchableSelect = {},
   } = field;
   const { required } = validate;
-  const { url } = searchableSelect;
+  const { url, fx } = searchableSelect;
   const componentRef = useRef < HTMLDivElement > null;
   const { formId } = useContext(FormContext);
 
@@ -37,7 +38,16 @@ export function CustomSelect(props) {
   const [currentPage, setCurrentPage] = useState(1);
   const [scrollLocked, setScrollLocked] = useState(false);
   //TO DO: accept url from field params
-  const urlFetch = url ?? "http://universities.hipolabs.com/search";
+  const evaluatedUrl = useTemplateEvaluation(fx, {
+    debug: true,
+    strict: true,
+  });
+
+  const urlFetch = url || evaluatedUrl;
+
+  if (evaluatedUrl) {
+    console.log("evaluatedUrl", evaluatedUrl);
+  }
 
   const onScrollEnd = async () => {
     if (scrollLocked || !urlFetch) return;
