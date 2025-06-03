@@ -15,7 +15,6 @@ export const customSelectType = "custom-select";
 import "./styles.css";
 
 export function CustomSelect(props) {
-  console.log("CustomSelect props", props);
   const { disabled, errors = [], field, readonly } = props;
   const {
     description,
@@ -25,8 +24,8 @@ export function CustomSelect(props) {
     searchableSelect = {},
   } = field;
   const { required } = validate;
-  const { url, fx } = searchableSelect;
-  const componentRef = useRef < HTMLDivElement > null;
+  const { url } = searchableSelect;
+  const componentRef = useRef(null);
   const { formId } = useContext(FormContext);
 
   const errorMessageId =
@@ -37,17 +36,15 @@ export function CustomSelect(props) {
   const [showOptions, setShowOptions] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [scrollLocked, setScrollLocked] = useState(false);
+  const skipNextSearchEffect = useRef(false);
   //TO DO: accept url from field params
-  const evaluatedUrl = useTemplateEvaluation(fx, {
+  const evaluatedUrl = useTemplateEvaluation(url, {
     debug: true,
     strict: true,
   });
 
-  const urlFetch = url || evaluatedUrl;
-
-  if (evaluatedUrl) {
-    console.log("evaluatedUrl", evaluatedUrl);
-  }
+  const urlFetch = evaluatedUrl;
+  console.log("urlFetch", urlFetch);
 
   const onScrollEnd = async () => {
     if (scrollLocked || !urlFetch) return;
@@ -81,7 +78,7 @@ export function CustomSelect(props) {
     const { scrollTop, scrollHeight, clientHeight } = target;
     const scrolledRatio = (scrollTop + clientHeight) / scrollHeight;
 
-    if (scrolledRatio >= 0.8) {
+    if (scrolledRatio >= 0.8 && !scrollLocked) {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
@@ -92,7 +89,13 @@ export function CustomSelect(props) {
     }
   };
 
+ 
   useEffect(() => {
+    if (skipNextSearchEffect.current) {
+      skipNextSearchEffect.current = false;
+      return; // Skip this effect run
+    }
+
     if (search.length >= 2) {
       const delay = setTimeout(() => {
         fetchOptions(search);
@@ -103,8 +106,8 @@ export function CustomSelect(props) {
     } else {
       setShowOptions(false);
     }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   // const handleChange = (e) => {
@@ -113,13 +116,14 @@ export function CustomSelect(props) {
   // }
 
   const handleSelect = (value) => {
+    skipNextSearchEffect.current = true;
     setSearch(value.value);
     props.onChange({ field, value });
     setShowOptions(false);
   };
 
-  const toggleDropdown = () => {
-    if (!readonly) setShowOptions((prev) => !prev);
+  const openDropdown = () => {
+    if (!readonly && search.length >= 2) setShowOptions(true);
   };
 
   const handleClickOutside = (event) => {
@@ -152,11 +156,11 @@ export function CustomSelect(props) {
           setSearch(e.target.value);
           //setShowOptions(false)
         }}
-        onClick=${toggleDropdown}
+        onClick=${openDropdown}
         placeholder="Type to search..."
       />
       ${showOptions &&
-      html`<ul onScroll=${onScroll} className="options-list">
+      html`<ul onScroll=${onScroll} class="options-list">
         ${options.map(
           (option) =>
             html`<li
